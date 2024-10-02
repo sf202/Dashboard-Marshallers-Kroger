@@ -13,3 +13,6 @@ Python data visualization dashboards with plotly & Dash.
 *   Frontend: HTML(Bootstrap), CSS, JavaScript (via Dash/React)  
 *  Data Processing: Pandas, NumPy
 *   Visualization: Plotly,
+
+The Admin Dashboard is hosted on python anywhere where you can see how it operates.
+https://2oolander.pythonanywhere.com/
