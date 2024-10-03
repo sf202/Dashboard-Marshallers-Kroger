@@ -45,9 +45,8 @@ app = dash.Dash(__name__)
 server = app.server
 
 app.layout = html.Div(style={'backgroundColor': '#F9F9F9', 'padding': '20px'}, children=[
-    html.H1('Dispatch Performance Data', style={'color': '#0D1F2D', 'fontFamily': 'Calibri'}),
-    html.H2('Adjust Dispatch Count', style={'color': '#334E68', 'fontFamily': 'Calibri'}),
-    
+    html.H1('Kroger Forest Park FC  Marshaller  Report', style={'color': '#0D1F2D', 'fontFamily': 'Calibri'}),
+
     html.Div([
         html.Label('Select Days:', style={'fontFamily': 'Calibri', 'marginRight': '10px'}),
         dcc.Dropdown(
@@ -70,16 +69,20 @@ app.layout = html.Div(style={'backgroundColor': '#F9F9F9', 'padding': '20px'}, c
         )
     ]),
     
-    dcc.RangeSlider(
-        id='interval-slider',
-        min=0,
-        max=20,
-        step=1,
-        marks={i: f'+{i}' for i in range(0, 21, 5)},
-        value=[0, 0],
-        tooltip={"placement": "bottom", "always_visible": True},
-        updatemode='drag'
-    ),
+    html.Div([
+    html.Label('Adjust Dispatch Count', style={'fontFamily': 'Calibri', 'marginLeft': '10px', 'fontWeight': 'bold'}),
+
+        dcc.RangeSlider(
+            id='interval-slider',
+            min=0,
+            max=20,
+            step=1,
+            marks={i: f'+{i}' for i in range(0, 21, 5)},
+            value=[0, 0],
+            tooltip={"placement": "bottom", "always_visible": True},
+            updatemode='drag'
+        ),
+    ]),
     
     dcc.Tabs([
         dcc.Tab(label='Table View', children=[
