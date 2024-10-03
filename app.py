@@ -323,7 +323,7 @@ def update_graphs(slider_range, selected_day, turn_time, selected_days):
         height=700
     )
 
-    # Create heatmap
+   # Create heatmap
     heatmap_df = df_filtered.iloc[:-1, 1:-1]  # Exclude 'Time' column and 'Averages' column
     heatmap_fig = px.imshow(
         heatmap_df.values,
@@ -331,7 +331,7 @@ def update_graphs(slider_range, selected_day, turn_time, selected_days):
         x=heatmap_df.columns,
         y=df_filtered['Time'][:-1],
         aspect="auto",
-        color_continuous_scale=[COLORS['background'], COLORS['primary']]
+        color_continuous_scale='YlOrRd'  # Yellow-Orange-Red color scale
     )
 
     # Update heatmap layout
@@ -344,7 +344,6 @@ def update_graphs(slider_range, selected_day, turn_time, selected_days):
         height=700,
         font=dict(family="Arial, sans-serif", color=COLORS['text'])
     )
-
     # Create horizontal bar graph
     if selected_day in df_filtered.columns:
         bar_data = df_filtered.iloc[:21, [0, df_filtered.columns.get_loc(selected_day)]]  # Get data from 12 AM to 8 PM for selected day
