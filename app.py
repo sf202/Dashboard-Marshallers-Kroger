@@ -4,12 +4,30 @@ import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 import numpy as np
+import base64
+import io
 
-def load_data():
-    df = pd.read_csv("AverageDispatchTime.csv")
-    return df
+def load_default_data():
+    try:
+        df = pd.read_csv("AverageDispatchTime.csv")
+        return df
+    except FileNotFoundError:
+        print("Default file 'AverageDispatchTime.csv' not found. Please upload a CSV file.")
+        return None
 
-df = load_data()
+def parse_contents(contents, filename):
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    try:
+        if 'csv' in filename:
+            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+        else:
+            return None, 'Unsupported file type'
+    except Exception as e:
+        print(e)
+        return None, 'There was an error processing this file.'
+
+    return df, 'File successfully processed'
 
 def suggest_marshallers(value, turn_time):
     """
@@ -20,10 +38,8 @@ def suggest_marshallers(value, turn_time):
     Returns:
         float: Suggested number of marshallers (1-5)
     """
-    # Convert turn_time to int for comparison
     turn_time = int(turn_time)
     
-    # Lookup dictionary for thresholds based on turn time
     thresholds = {
         6: [10, 20, 30, 40, 50],
         7: [8, 17, 25, 34, 42],
@@ -32,27 +48,54 @@ def suggest_marshallers(value, turn_time):
         10: [6, 12, 18, 24, 30]
     }
     
-    # Get thresholds for selected turn time
-    current_thresholds = thresholds.get(turn_time, thresholds[8])  # Default to 8 if invalid
+    current_thresholds = thresholds.get(turn_time, thresholds[8])
     
-    # Determine number of marshallers needed
     for i, threshold in enumerate(current_thresholds, 1):
         if value <= threshold:
             return float(i)
-    return 5.0  # Maximum of 5 marshallers
+    return 5.0
 
 app = dash.Dash(__name__)
 server = app.server
 
+# Load default data
+default_df = load_default_data()
+if default_df is not None:
+    current_df = default_df
+else:
+    current_df = pd.DataFrame()
+
 app.layout = html.Div(style={'backgroundColor': '#F9F9F9', 'padding': '20px'}, children=[
-    html.H1('Kroger Forest Park FC  Marshaller  Report', style={'color': '#0D1F2D', 'fontFamily': 'Calibri'}),
+    html.H1('Kroger Forest Park FC Marshaller Report', style={'color': '#0D1F2D', 'fontFamily': 'Calibri'}),
+
+    dcc.Upload(
+        id='upload-data',
+        children=html.Div([
+            'Drag and Drop or ',
+            html.A('Select Files')
+        ]),
+        style={
+            'width': '100%',
+            'height': '60px',
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'dashed',
+            'borderRadius': '5px',
+            'textAlign': 'center',
+            'margin': '10px'
+        },
+        multiple=False
+    ),
+
+    html.Div(id='output-data-upload'),
+
+    html.Button("Download CSV", id="btn-download-csv"),
+    dcc.Download(id="download-csv"),
 
     html.Div([
         html.Label('Select Days:', style={'fontFamily': 'Calibri', 'marginRight': '10px'}),
         dcc.Dropdown(
             id='day-selector',
-            options=[{'label': day, 'value': day} for day in df.columns[1:]],
-            value=df.columns[1:].tolist(),
             multi=True,
             style={'width': '100%', 'marginBottom': '20px'}
         )
@@ -99,29 +142,81 @@ app.layout = html.Div(style={'backgroundColor': '#F9F9F9', 'padding': '20px'}, c
             html.Div([
                 dcc.Dropdown(
                     id='bar-day-dropdown',
-                    options=[{'label': day, 'value': day} for day in df.columns[1:]],
-                    value=df.columns[1],
                     style={'width': '200px', 'marginBottom': '20px'}
                 ),
                 dcc.Graph(id='marshaller-bar', 
                          config={'displayModeBar': False})
             ])
+        ]),
+        dcc.Tab(label='Line Plot View', children=[
+            dcc.Graph(id='marshaller-line-plot', 
+                     config={'displayModeBar': False}, 
+                     style={'marginTop': '30px'})
+        ]),
+        dcc.Tab(label='Stacked Bar Chart View', children=[
+            dcc.Graph(id='marshaller-stacked-bar', 
+                     config={'displayModeBar': False}, 
+                     style={'marginTop': '30px'})
         ])
     ])
 ])
 
 @app.callback(
+    Output('output-data-upload', 'children'),
+    Output('day-selector', 'options'),
+    Output('day-selector', 'value'),
+    Output('bar-day-dropdown', 'options'),
+    Output('bar-day-dropdown', 'value'),
+    Input('upload-data', 'contents'),
+    State('upload-data', 'filename')
+)
+def update_output(contents, filename):
+    global current_df
+    
+    if contents is None:
+        if current_df.empty:
+            return 'No file uploaded and default file not found.', [], [], [], None
+        else:
+            message = 'Using default file: AverageDispatchTime.csv'
+    else:
+        df, message = parse_contents(contents, filename)
+        if df is not None:
+            current_df = df
+        else:
+            return message, [], [], [], None
+
+    options = [{'label': day, 'value': day} for day in current_df.columns[1:]]
+    values = current_df.columns[1:].tolist()
+
+    return message, options, values, options, values[0]
+
+@app.callback(
+    Output("download-csv", "data"),
+    Input("btn-download-csv", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_csv(n_clicks):
+    if n_clicks is None:
+        return dash.no_update
+    return dcc.send_data_frame(current_df.to_csv, "marshaller_data.csv", index=False)
+
+@app.callback(
     Output('marshaller-table', 'figure'),
     Output('marshaller-heatmap', 'figure'),
     Output('marshaller-bar', 'figure'),
+    Output('marshaller-line-plot', 'figure'),
+    Output('marshaller-stacked-bar', 'figure'),
     Input('interval-slider', 'value'),
     Input('bar-day-dropdown', 'value'),
     Input('turn-time-dropdown', 'value'),
     Input('day-selector', 'value')
 )
 def update_graphs(slider_range, selected_day, turn_time, selected_days):
+    if current_df.empty:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
     # Filter the DataFrame based on selected days
-    df_filtered = df[['Time'] + selected_days]
+    df_filtered = current_df[['Time'] + selected_days]
     
     # Apply the slider value to increase the numerical levels
     for col in df_filtered.columns[1:]:
@@ -225,7 +320,48 @@ def update_graphs(slider_range, selected_day, turn_time, selected_days):
             height=700
         )
     
-    return table_fig, heatmap_fig, bar_fig
+    # Create line plot
+    line_data = df_filtered.iloc[:-1]  # Exclude the 'Daily Averages' row
+    line_fig = px.line(line_data, x='Time', y=selected_days, 
+                       labels={'value': 'Suggested Marshallers', 'variable': 'Day of Week'},
+                       title=f'Suggested Marshallers Over Time (Increased by {slider_range[1]}, Turn Time: {turn_time} min)')
+    
+    # Update line plot layout
+    line_fig.update_layout(
+        xaxis_title="Time of Day",
+        yaxis_title="Suggested Marshallers",
+        yaxis=dict(range=[0, 5.5], dtick=1),  # Set y-axis range from 0 to 5 with tick every 1
+        width=900,
+        height=700,
+        legend_title="Day of Week",
+        font=dict(family="Calibri")
+    )
+
+    # Create stacked bar chart
+    stacked_bar_data = df_filtered.iloc[:-1]  # Exclude the 'Daily Averages' row
+    stacked_bar_fig = go.Figure()
+
+    for day in selected_days:
+        stacked_bar_fig.add_trace(go.Bar(
+            x=stacked_bar_data['Time'],
+            y=stacked_bar_data[day],
+            name=day,
+            hovertemplate='%{y:.1f}'
+        ))
+
+    # Update stacked bar chart layout
+    stacked_bar_fig.update_layout(
+        barmode='stack',
+        title=f'Total Suggested Marshallers by Time of Day (Increased by {slider_range[1]}, Turn Time: {turn_time} min)',
+        xaxis_title="Time of Day",
+        yaxis_title="Total Suggested Marshallers",
+        legend_title="Day of Week",
+        font=dict(family="Calibri"),
+        width=900,
+        height=700
+    )
+    
+    return table_fig, heatmap_fig, bar_fig, line_fig, stacked_bar_fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server
