@@ -102,10 +102,10 @@ COLORS = {
 
 app.layout = html.Div(style={'backgroundColor': COLORS['background'], 'minHeight': '100vh'}, children=[
     html.Div(style={'backgroundColor': COLORS['primary'], 'padding': '20px', 'color': 'white'}, children=[
-        html.H1('Kroger Forest Park FC Marshaller Report', style={'fontFamily': 'Arial, sans-serif', 'marginBottom': '0'}),
+        html.H1('Kroger Forest Park FC Marshaller Week Report', style={'fontFamily': 'Arial, sans-serif', 'marginBottom': '0'}),
         html.P('Optimize your marshaller allocation', style={'fontFamily': 'Arial, sans-serif', 'marginTop': '5px'})
     ]),
-    
+
     html.Div(style={'padding': '20px', 'maxWidth': '1200px', 'margin': 'auto'}, children=[
         dcc.Upload(
             id='upload-data',
@@ -164,20 +164,20 @@ app.layout = html.Div(style={'backgroundColor': COLORS['background'], 'minHeight
             )
         ]),
         # Add slider to adjust dispatch count
+html.Div([
+    html.Label('Adjust Dispatch Count', style={'fontFamily': 'Arial, sans-serif', 'marginLeft': '10px', 'fontWeight': 'bold', 'color': COLORS['text']}),
+    dcc.RangeSlider(
+        id='interval-slider',
+        min=-10,  # Updated to allow decrements down to -10
+        max=20,
+        step=1,
+        marks={i: f'{i:+}' for i in range(-10, 21, 5)},  # Updated to show range from -10 to +20
+        value=[0, 0],
+        tooltip={"placement": "bottom", "always_visible": True},
+        updatemode='drag'
+    ),
+], style={'backgroundColor': 'white', 'padding': '20px', 'borderRadius': '5px', 'marginBottom': '20px'}),
 
-        html.Div([
-            html.Label('Adjust Dispatch Count', style={'fontFamily': 'Arial, sans-serif', 'marginLeft': '10px', 'fontWeight': 'bold', 'color': COLORS['text']}),
-            dcc.RangeSlider(
-                id='interval-slider',
-                min=0,
-                max=20,
-                step=1,
-                marks={i: f'+{i}' for i in range(0, 21, 5)},
-                value=[0, 0],
-                tooltip={"placement": "bottom", "always_visible": True},
-                updatemode='drag'
-            ),
-        ], style={'backgroundColor': 'white', 'padding': '20px', 'borderRadius': '5px', 'marginBottom': '20px'}),
         # Add tabs for different views
 
         dcc.Tabs(style={'fontFamily': 'Arial, sans-serif'}, children=[
