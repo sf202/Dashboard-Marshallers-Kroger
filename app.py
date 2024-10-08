@@ -184,6 +184,12 @@ html.Div([
             dcc.Tab(label='Table View', style={'backgroundColor': COLORS['primary'], 'color': 'white'}, selected_style={'backgroundColor': COLORS['secondary'], 'color': 'white'}, children=[
                 dcc.Graph(id='marshaller-table', config={'displayModeBar': False}, style={'marginTop': '30px'})
             ]),
+            dcc.Tab(label='Pie Chart View', style={'backgroundColor': COLORS['primary'], 'color': 'white'},
+        selected_style={'backgroundColor': COLORS['secondary'], 'color': 'white'}, children=[
+    dcc.Graph(id='marshaller-pie-chart', config={'displayModeBar': False}, style={'marginTop': '30px'})
+])
+
+            ,
             dcc.Tab(label='Heatmap View', style={'backgroundColor': COLORS['primary'], 'color': 'white'}, selected_style={'backgroundColor': COLORS['secondary'], 'color': 'white'}, children=[
                 dcc.Graph(id='marshaller-heatmap', config={'displayModeBar': False}, style={'marginTop': '30px'})
             ]),
@@ -262,11 +268,13 @@ def download_csv(n_clicks):
     Output('marshaller-bar', 'figure'),
     Output('marshaller-line-plot', 'figure'),
     Output('marshaller-stacked-bar', 'figure'),
+    Output('marshaller-pie-chart', 'figure'),  # Add this line for pie chart
     Input('interval-slider', 'value'),
     Input('bar-day-dropdown', 'value'),
     Input('turn-time-dropdown', 'value'),
     Input('day-selector', 'value')
 )
+
 def update_graphs(slider_range, selected_day, turn_time, selected_days):
     if current_df.empty:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
@@ -291,6 +299,19 @@ def update_graphs(slider_range, selected_day, turn_time, selected_days):
 
     # Add daily averages to the DataFrame
     df_filtered.loc[len(df_filtered)] = ['Daily Averages'] + daily_averages
+
+# Calculate daily averages for the pie chart
+    daily_averages = df_filtered.iloc[:, 1:-1].mean().round(1)
+
+# Create pie chart figure
+    pie_fig = px.pie(
+      values=daily_averages,
+       names=daily_averages.index,
+      title='Distribution of Marshallers Across Days',
+      color_discrete_sequence=[COLORS['primary'], COLORS['secondary'], COLORS['accent']]
+)
+
+
 
     # Create the table
     table_fig = go.Figure(data=[go.Table(
@@ -419,7 +440,7 @@ def update_graphs(slider_range, selected_day, turn_time, selected_days):
         height=700
     )
 
-    return table_fig, heatmap_fig, bar_fig, line_fig, stacked_bar_fig
+    return table_fig, heatmap_fig, bar_fig, line_fig, stacked_bar_fig, pie_fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
