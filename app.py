@@ -307,7 +307,7 @@ def update_graphs(slider_range, selected_day, turn_time, selected_days):
     pie_fig = px.pie(
       values=daily_averages,
        names=daily_averages.index,
-      title='Distribution of Marshallers Across Days',
+      title=f'Distribution of Marshallers Across Days (Increased by {slider_range[1]}, Turn Time: {turn_time} min)',
       color_discrete_sequence=[COLORS['primary'], COLORS['secondary'], COLORS['accent']]
 )
 
