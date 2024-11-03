@@ -8,8 +8,7 @@ This Full Stack dashboard  visualizes dispatch data by providing recommendations
 
 Python data visualization dashboards with plotly & Dash.
 
-#
-* Visualization:
+# Visualization:
 * Table View: 
 * Heatmap View: 
 * Bar Graph View: 
