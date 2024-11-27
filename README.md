@@ -5,6 +5,10 @@ This Full Stack dashboard  visualizes dispatch data by providing recommendations
 * Input: Number of dispatch times via CSV or Excel File .
 
 * Output: Predicted number of marshallers needed per hour.
+* Determine the required number of marshallers for each a.m. and p.m. shift. 
+*The Solution: Implement a Marshaller Dashboard System to automate scheduling and staffing. 
+
+
 
 Python data visualization dashboards with plotly & Dash.
 
