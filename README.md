@@ -6,7 +6,7 @@ This Full Stack dashboard  visualizes dispatch data by providing recommendations
 
 * Output: Predicted number of marshallers needed per hour.
 * Determine the required number of marshallers for each a.m. and p.m. shift. 
-*The Solution: Implement a Marshaller Dashboard System to automate scheduling and staffing. 
+* The Solution: Implement a Marshaller Dashboard System to automate scheduling and staffing. 
 
 
 
