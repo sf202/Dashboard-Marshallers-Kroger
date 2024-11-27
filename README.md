@@ -15,6 +15,11 @@ Python data visualization dashboards with plotly & Dash.
 * Line Plot View: 
 * Stacked Bar Chart View: 
 
+# User Interaction:
+*  Range  slider allows users to increase or decrease the dispatch count in increments of 5.
+* Day Selection Dropdown: Users can include or exclude specific days for focused analysis. 
+* Users can choose the marshaller turn time (6, 7, 8, 9, or 10 minutes) using a dropdown, which directly influences the calculations.
+* Users can download the processed dispatch data as a CSV file for further analysis.
 
 # Tech Stack
 *   Backend: Python, Dash, Flask , Python Anywhere
